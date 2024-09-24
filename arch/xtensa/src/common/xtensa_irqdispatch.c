@@ -64,7 +64,7 @@ uint32_t *xtensa_irq_dispatch(int irq, uint32_t *regs)
 
   up_set_current_regs(regs);
 
-  if (irq != XTENSA_IRQ_SWINT)
+  if (irq != XTENSA_IRQ_SYSCALL)
     {
       /* we are not trigger by syscall */
 
