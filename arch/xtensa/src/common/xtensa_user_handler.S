@@ -235,6 +235,13 @@ _xtensa_syscall_handler:
 
 	call0	_xtensa_context_save
 
+	/* Overwrite the PS saved by the exception entry. */
+
+	movi	a2, ~PS_EXCM_MASK
+	l32i	a3, sp, (4 * REG_PS)
+	and		a3, a3, a2
+	s32i	a3, sp, (4 * REG_PS)
+
 	/* Save EPC (note that this will overwrite the PC saved by the exception
 	 * entry with the correct value skipping the syscall instruction.)
 	 */
