@@ -60,6 +60,11 @@ config UART_HOSTFS
 	select SERIAL_RXDMA
 	select SERIAL_TXDMA
 
+config UART_HOSTFS_DEVPATH
+	string "The host device node that will be used by"
+	depends on UART_HOSTFS
+	default "/dev/tty"
+
 config UART_HOSTFS_RXBUFSIZE
 	int "Uart hostfs receive buffer size"
 	default 256
