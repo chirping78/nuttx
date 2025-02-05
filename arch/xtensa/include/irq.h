@@ -218,6 +218,39 @@ struct xcptcontext
  * Inline functions
  ****************************************************************************/
 
+#if defined(XCHAL_NUM_MISC_REGS) && XCHAL_NUM_MISC_REGS > 0
+static inline_function uint32_t xtensa_getmisc0(void)
+{
+  uint32_t misc0;
+
+  __asm__ __volatile__
+  (
+    "rsr %0, MISC0"  : "=r"(misc0)
+  );
+
+  return misc0;
+}
+
+static inline_function void xtensa_setmisc0(uint32_t misc0)
+{
+  __asm__ __volatile__
+  (
+    "wsr %0, MISC0"
+    :
+    : "r"(misc0)
+  );
+}
+
+/****************************************************************************
+ * Schedule acceleration macros
+ ****************************************************************************/
+
+#define up_this_task()    ((struct tcb_s *)(xtensa_getmisc0() & ~1u))
+#define up_update_task(t) xtensa_setmisc0((xtensa_getmisc0() & 1u) | \
+                                          ((uint32_t)(t) & ~1u))
+
+#endif
+
 /* Return the current value of the PS register */
 
 static inline_function uint32_t xtensa_getps(void)
@@ -423,6 +456,11 @@ static inline_function int up_cpu_index(void)
  *
  ****************************************************************************/
 
+#if defined(XCHAL_NUM_MISC_REGS) && XCHAL_NUM_MISC_REGS > 0
+#define up_set_interrupt_context(flag)        \
+  xtensa_setmisc0((xtensa_getmisc0() & ~1u) | \
+                  ((uint32_t)(flag) & 1u))
+#else
 noinstrument_function
 static inline_function void up_set_interrupt_context(bool flag)
 {
@@ -432,6 +470,7 @@ static inline_function void up_set_interrupt_context(bool flag)
   g_interrupt_context[0] = flag;
 #endif
 }
+#endif
 
 /****************************************************************************
  * Name: up_interrupt_context
@@ -443,6 +482,10 @@ static inline_function void up_set_interrupt_context(bool flag)
  ****************************************************************************/
 
 #ifndef __ASSEMBLY__
+
+#if defined(XCHAL_NUM_MISC_REGS) && XCHAL_NUM_MISC_REGS > 0
+#define up_interrupt_context() (xtensa_getmisc0() & 1)
+#else
 noinstrument_function static inline_function bool up_interrupt_context(void)
 {
 #ifdef CONFIG_SMP
@@ -454,6 +497,8 @@ noinstrument_function static inline_function bool up_interrupt_context(void)
   return g_interrupt_context[0];
 #endif
 }
+#endif
+
 #endif
 
 #define up_switch_context(tcb, rtcb)   \
