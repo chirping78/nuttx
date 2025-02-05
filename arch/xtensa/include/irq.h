@@ -218,6 +218,28 @@ struct xcptcontext
  * Inline functions
  ****************************************************************************/
 
+static inline_function uint32_t xtensa_getmisc0(void)
+{
+  uint32_t misc0;
+
+  __asm__ __volatile__
+  (
+    "rsr %0, MISC0"  : "=r"(misc0)
+  );
+
+  return misc0;
+}
+
+static inline_function void xtensa_setmisc0(uint32_t misc0)
+{
+  __asm__ __volatile__
+  (
+    "wsr %0, MISC0"
+    :
+    : "r"(misc0)
+  );
+}
+
 /* Return the current value of the PS register */
 
 static inline_function uint32_t xtensa_getps(void)
