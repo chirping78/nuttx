@@ -53,16 +53,16 @@
 	.align  	4
 
 _overflow4_exit_hook:
-	wsr 	a0, misc0
-	wsr 	a1, misc1
+	wsr 	a0, misc1
+	wsr 	a1, misc2
 
 	/* Restore PID to the same value prior to the exception */
 
 	get_prev_pid 2 a0
 	set_next_pid a0 a1
 
-	rsr 	a0, misc0
-	rsr 	a1, misc1
+	rsr 	a0, misc1
+	rsr 	a1, misc2
 	rfwo				/* rotates back to call[i] position */
 
 /****************************************************************************
@@ -75,16 +75,16 @@ _overflow4_exit_hook:
 	.align  	4
 
 _underflow4_exit_hook:
-	wsr 	a0, misc0
-	wsr 	a1, misc1
+	wsr 	a0, misc1
+	wsr 	a1, misc2
 
 	/* Restore PID to the same value prior to the exception */
 
 	get_prev_pid 4 a0
 	set_next_pid a0 a1
 
-	rsr 	a0, misc0
-	rsr 	a1, misc1
+	rsr 	a0, misc1
+	rsr 	a1, misc2
 	rfwu
 
 /****************************************************************************
@@ -97,16 +97,16 @@ _underflow4_exit_hook:
 	.align  	4
 
 _overflow8_exit_hook:
-	wsr 	a0, misc0
-	wsr 	a1, misc1
+	wsr 	a0, misc1
+	wsr 	a1, misc2
 
 	/* Restore PID to the same value prior to the exception */
 
 	get_prev_pid 5 a0
 	set_next_pid a0 a1
 
-	rsr 	a0, misc0
-	rsr 	a1, misc1
+	rsr 	a0, misc1
+	rsr 	a1, misc2
 	rfwo				/* rotates back to call[i] position */
 
 /****************************************************************************
@@ -119,16 +119,16 @@ _overflow8_exit_hook:
 	.align  	4
 
 _underflow8_exit_hook:
-	wsr 	a0, misc0
-	wsr 	a1, misc1
+	wsr 	a0, misc1
+	wsr 	a1, misc2
 
 	/* Restore PID to the same value prior to the exception */
 
 	get_prev_pid 6 a0
 	set_next_pid a0 a1
 
-	rsr 	a0, misc0
-	rsr 	a1, misc1
+	rsr 	a0, misc1
+	rsr 	a1, misc2
 	rfwu
 
 #endif /* CONFIG_XTENSA_HAVE_WINDOW_EXCEPTION_HOOKS */
