@@ -562,8 +562,34 @@ _xtensa_debug_handler:
 
 	exception_entry XCHAL_DEBUGLEVEL
 
+#if !defined(CONFIG_ARCH_HAVE_DEBUG)
 	movi	a2, XTENSA_DEBUG_EXCEPTION		/* Argument 1: Error code */
 	call0	_xtensa_panic					/* Does not return */
+
+#else
+	call0	_xtensa_context_save
+
+	mov  a12, sp
+
+#if CONFIG_ARCH_INTERRUPTSTACK > 15
+	setintstack a13 a14
+#endif
+
+	ps_setup	XCHAL_DEBUGLEVEL a0
+
+	exception_backtrace a12 XCHAL_DEBUGLEVEL
+
+	mov		ARG1, a12
+	CALL	xtensa_debug_handler
+
+	mov		a2, RETVAL
+
+	call0   _xtensa_context_restore     /* Preserves a2 */
+
+	exception_exit XCHAL_DEBUGLEVEL
+
+	rfi		XCHAL_DEBUGLEVEL
+#endif
 
 	.size	_xtensa_debug_handler, . -_xtensa_debug_handler
 

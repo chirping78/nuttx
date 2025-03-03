@@ -367,3 +367,77 @@ int up_debugpoint_remove(int type, void *addr, size_t size)
 
   return 0;
 }
+
+static void xtensa_breakpoint_match(uint32_t pc)
+{
+  int i;
+  struct xtensa_debug_trigger *trigger_map = NULL;
+
+  for (i = 0; i < g_trigger_count; i++)
+    {
+      trigger_map = &g_trigger_map[i];
+      if (trigger_map->trigger_type == TRIGGER_TYPE_CODE &&
+          trigger_map->address == pc &&
+          trigger_map->callback != NULL)
+        {
+          break;
+        }
+    }
+
+  if (trigger_map != NULL)
+    {
+      trigger_map->callback(trigger_map->type,
+                            trigger_map->address,
+                            trigger_map->size,
+                            trigger_map->arg);
+    }
+}
+
+static void xtensa_watchpoint_match(uint32_t dbnum)
+{
+  int i;
+  struct xtensa_debug_trigger *trigger_map = NULL;
+
+  for (i = 0; i < g_trigger_count; i++)
+    {
+      trigger_map = &g_trigger_map[i];
+      if (trigger_map->trigger_type == TRIGGER_TYPE_DATA &&
+          trigger_map->index == dbnum &&
+          trigger_map->callback != NULL)
+        {
+          break;
+        }
+    }
+
+  if (trigger_map != NULL)
+    {
+      trigger_map->callback(trigger_map->type,
+                            trigger_map->address,
+                            trigger_map->size,
+                            trigger_map->arg);
+    }
+}
+
+uint32_t *xtensa_debug_handler(uint32_t *regs)
+{
+  uint32_t cause;
+
+  __asm__ __volatile__
+  (
+    "rsr %0, DEBUGCAUSE"
+    : "=r"(cause)
+  );
+
+  if (cause & XCHAL_DEBUGCAUSE_DBREAK_MASK)
+    {
+      uint32_t num;
+      num = ((cause & 0x0f00) >> 8);
+      xtensa_watchpoint_match(num);
+    }
+  else if (cause & XCHAL_DEBUGCAUSE_IBREAK_MASK)
+    {
+      xtensa_breakpoint_match(regs[REG_PC]);
+    }
+
+  return regs;
+}
