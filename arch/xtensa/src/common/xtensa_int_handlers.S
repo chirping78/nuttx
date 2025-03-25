@@ -587,7 +587,16 @@ _xtensa_debug_handler:
 
 	/* Set up PS for C, re-enable hi-pri interrupts, and clear EXCM. */
 
+	#if 0
 	ps_setup	XCHAL_DEBUGLEVEL a0
+	#endif
+#  ifdef __XTENSA_CALL0_ABI__
+	movi	a0, PS_INTLEVEL(XCHAL_DEBUGLEVEL) | PS_UM
+#  else
+	movi	a0, PS_INTLEVEL(XCHAL_DEBUGLEVEL) | PS_UM | PS_WOE
+#  endif
+	wsr		a0, PS
+	rsync
 
 	/* Link the pre-exception frame for debugging. At this point, a12 points to the
 	 * allocated and filled exception stack frame (old value of SP in case of
