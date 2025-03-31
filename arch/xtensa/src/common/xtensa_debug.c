@@ -55,6 +55,7 @@ struct xtensa_debug_trigger
 static struct xtensa_debug_trigger g_code_trigger_map[XCHAL_NUM_IBREAK];
 static struct xtensa_debug_trigger g_data_trigger_map[XCHAL_NUM_DBREAK];
 static struct xtensa_debug_trigger g_singlestep_trigger;
+static int step_type;
 
 /****************************************************************************
  * Private Functions
@@ -152,7 +153,15 @@ static void xtensa_enable_singlestep(bool enable)
 
   if (enable)
     {
-      icountlevel = XCHAL_EXCM_LEVEL;
+      if (step_type == 1)
+        {
+          icountlevel = XCHAL_EXCM_LEVEL;
+        }
+      else if (step_type == 2)
+        {
+          icountlevel = XCHAL_DEBUGLEVEL;
+        }
+
       icount = 0xfffffffe;
     }
   else
@@ -513,10 +522,12 @@ uint32_t *xtensa_debug_handler(uint32_t *regs)
 
   if (!irq)
     {
+      step_type = 1;
       up_set_interrupt_context(true);
     }
   else
     {
+      step_type = 2;
       saved_regs = (*running_task)->xcp.regs;
     }
 
