@@ -1315,6 +1315,25 @@ int noteram_register(void)
 #ifdef CONFIG_DRIVERS_NOTERAM_CRASH_DUMP
   noteram_crash_dump_register();
 #endif
+
+  _alert("noteram buffer origin at %p, size %d\n",
+         g_noteram_driver.ni_buffer,
+         g_noteram_driver.ni_bufsize);
+
+  size_t buf_size = CONFIG_DRIVERS_NOTERAM_BUFSIZE * 1000;
+  g_noteram_driver.ni_buffer = kmm_malloc(buf_size);
+
+  if (g_noteram_driver.ni_buffer == NULL)
+    {
+      _alert("ERROR: Failed to allocate memory for Noteram buffer\n");
+      return -ENOMEM;
+    }
+
+  g_noteram_driver.ni_bufsize = buf_size;
+  _alert("noteram buffer reloca to %p, size %d\n",
+         g_noteram_driver.ni_buffer,
+         g_noteram_driver.ni_bufsize);
+
   return register_driver("/dev/note/ram", &g_noteram_fops, 0666,
                          &g_noteram_driver);
 }
