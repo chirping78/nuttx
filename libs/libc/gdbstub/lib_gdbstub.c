@@ -38,6 +38,7 @@
 #include <nuttx/gdbstub.h>
 #include <nuttx/memoryregion.h>
 #include <nuttx/streams.h>
+#include <nuttx/sched_note.h>
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -2064,6 +2065,7 @@ int gdb_process(FAR struct gdb_state_s *state, int stopreason,
                 FAR void *stopaddr)
 {
   int ret;
+  sched_note_beginex(NOTE_TAG_ALWAYS, __func__);
 
   if (stopreason != GDB_STOPREASON_NONE)
     {
@@ -2163,5 +2165,6 @@ out:
 #endif
   state->last_stopreason = stopreason;
   state->last_stopaddr = stopaddr;
+  sched_note_endex(NOTE_TAG_ALWAYS, __func__);
   return ret;
 }

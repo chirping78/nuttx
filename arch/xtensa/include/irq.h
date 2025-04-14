@@ -283,6 +283,13 @@ noinstrument_function static inline_function uint32_t up_irq_save(void)
 {
   uint32_t ps;
 
+  ps = xtensa_getps();
+
+  if ((ps & PS_INTLEVEL_MASK) >= XCHAL_IRQ_LEVEL)
+    {
+      return ps;
+    }
+
   /* Disable all low- and medium-priority interrupts.  High priority
    * interrupts should not interfere with ongoing RTOS operations and
    * are not disabled.

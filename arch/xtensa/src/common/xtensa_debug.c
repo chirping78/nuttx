@@ -26,6 +26,7 @@
 
 #include <nuttx/config.h>
 #include <nuttx/arch.h>
+#include <nuttx/sched_note.h>
 
 #include <assert.h>
 #include <debug.h>
@@ -74,6 +75,7 @@ static void xtensa_enable_ibreak(int index, uintptr_t address)
 
   DEBUGASSERT(index < XCHAL_NUM_IBREAK && XCHAL_NUM_IBREAK <= 2);
 
+  sched_note_beginex(NOTE_TAG_ALWAYS, __func__);
   __asm__ __volatile__
   (
     "rsr %0, IBREAKENABLE\n"
@@ -104,6 +106,8 @@ static void xtensa_enable_ibreak(int index, uintptr_t address)
         : "r"(address), "r"(ibreakenable)
       );
     }
+
+  sched_note_endex(NOTE_TAG_ALWAYS, __func__);
 }
 
 /****************************************************************************
@@ -120,6 +124,7 @@ static void xtensa_disable_ibreak(int index)
 
   DEBUGASSERT(index < XCHAL_NUM_IBREAK);
 
+  sched_note_beginex(NOTE_TAG_ALWAYS, __func__);
   __asm__ __volatile__
   (
     "rsr %0, IBREAKENABLE\n"
@@ -135,6 +140,7 @@ static void xtensa_disable_ibreak(int index)
     :
     : "r"(ibreakenable)
   );
+  sched_note_endex(NOTE_TAG_ALWAYS, __func__);
 }
 
 /****************************************************************************
@@ -150,6 +156,7 @@ static void xtensa_enable_singlestep(bool enable)
   uint32_t icountlevel;
   uint32_t icount;
 
+  sched_note_beginex(NOTE_TAG_ALWAYS, __func__);
   if (enable)
     {
       icountlevel = XCHAL_EXCM_LEVEL;
@@ -169,6 +176,7 @@ static void xtensa_enable_singlestep(bool enable)
     :
     : "r"(icount), "r"(icountlevel)
   );
+  sched_note_endex(NOTE_TAG_ALWAYS, __func__);
 }
 
 /****************************************************************************
@@ -325,6 +333,7 @@ static void xtensa_breakpoint_handler(uint32_t pc)
 {
   int i;
 
+  sched_note_beginex(NOTE_TAG_ALWAYS, __func__);
   for (i = 0; i < XCHAL_NUM_IBREAK; i++)
     {
       if (g_code_trigger_map[i].address == (void *)pc &&
@@ -336,6 +345,8 @@ static void xtensa_breakpoint_handler(uint32_t pc)
                                          g_code_trigger_map[i].arg);
         }
     }
+
+  sched_note_endex(NOTE_TAG_ALWAYS, __func__);
 }
 
 /****************************************************************************
@@ -348,6 +359,7 @@ static void xtensa_breakpoint_handler(uint32_t pc)
 
 static void xtensa_singlestep_handler(void)
 {
+  sched_note_beginex(NOTE_TAG_ALWAYS, __func__);
   if (g_singlestep_trigger.callback != NULL)
     {
       g_singlestep_trigger.callback(g_singlestep_trigger.type,
@@ -355,6 +367,8 @@ static void xtensa_singlestep_handler(void)
                                     g_singlestep_trigger.size,
                                     g_singlestep_trigger.arg);
     }
+
+  sched_note_endex(NOTE_TAG_ALWAYS, __func__);
 }
 
 /****************************************************************************
@@ -396,6 +410,7 @@ int up_debugpoint_add(int type, void *addr, size_t size,
   int slot;
   int ret = OK;
 
+  sched_note_beginex(NOTE_TAG_ALWAYS, __func__);
   switch (type)
     {
       case DEBUGPOINT_BREAKPOINT:
@@ -440,6 +455,7 @@ int up_debugpoint_add(int type, void *addr, size_t size,
         return -EINVAL;
     }
 
+  sched_note_endex(NOTE_TAG_ALWAYS, __func__);
   return 0;
 }
 
@@ -455,6 +471,7 @@ int up_debugpoint_remove(int type, void *addr, size_t size)
 {
   int slot;
 
+  sched_note_beginex(NOTE_TAG_ALWAYS, __func__);
   switch (type)
     {
       case DEBUGPOINT_BREAKPOINT:
@@ -490,6 +507,8 @@ int up_debugpoint_remove(int type, void *addr, size_t size)
         return -EINVAL;
   }
 
+  sched_note_endex(NOTE_TAG_ALWAYS, __func__);
+
   return 0;
 }
 
@@ -511,6 +530,9 @@ uint32_t *xtensa_debug_handler(uint32_t *regs)
   uint32_t cause;
   uint32_t dbnum;
 
+  sched_note_beginex(NOTE_TAG_ALWAYS, __func__);
+  sched_note_printf(NOTE_TAG_ALWAYS, "I|%d|pc=0x%x\n",
+                    gettid(), regs[REG_PC]);
   if (!irq)
     {
       up_set_interrupt_context(true);
@@ -559,6 +581,8 @@ uint32_t *xtensa_debug_handler(uint32_t *regs)
     {
       (*running_task)->xcp.regs = saved_regs;
     }
+
+  sched_note_endex(NOTE_TAG_ALWAYS, __func__);
 
   return regs;
 }

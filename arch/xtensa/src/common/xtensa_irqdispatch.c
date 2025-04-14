@@ -33,6 +33,7 @@
 
 #include <nuttx/addrenv.h>
 #include <nuttx/board.h>
+#include <nuttx/sched_note.h>
 #include <arch/board/board.h>
 #include <arch/chip/core-isa.h>
 
@@ -76,7 +77,11 @@ uint32_t *xtensa_irq_dispatch(int irq, uint32_t *regs)
 
   /* Deliver the IRQ */
 
+  sched_note_printf(NOTE_TAG_ALWAYS, "I|%d| befor dispatch %d\n",
+                    gettid(), irq);
   irq_dispatch(irq, regs);
+  sched_note_printf(NOTE_TAG_ALWAYS, "I|%d| after dispatch %d\n",
+                    gettid(), irq);
   tcb = this_task();
 
   /* Check for a context switch.  If a context switch occurred, then
